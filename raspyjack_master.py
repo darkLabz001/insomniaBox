@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import PIL.ImageFont
+PIL.ImageFont.truetype = lambda *a, **k: PIL.ImageFont.load_default()
+
 
 import base64
 import PIL.ImageFont
@@ -11,7 +14,7 @@ import subprocess
 import netifaces
 from scapy.all import ARP, Ether, srp
 from datetime import datetime
-import threading, smbus2 as smbus, time, pyudev, serial, struct, json
+import threading, smbus2 as smbus, time, pyudev, serial, struct, json2 as smbus, time, pyudev, serial, struct, json
 from subprocess import STDOUT, check_output
 from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageSequence, ImageOps
 import LCD_Config
@@ -2746,7 +2749,8 @@ def ReadTextFileInsomnia():
     while 1:
         rfile = Explorer("/home/kali/Raspyjack/loot/insomnia/", extensions=".log")
         if rfile == "": break
-        with open(rfile) as f: content = f.read().splitlines()
+        with open(rfile) as f:
+            content = f.read().splitlines()
         GetMenuString(content)
 
 def ReadTextFileNmap():
@@ -3913,12 +3917,12 @@ class DisposableMenu:
             [" WIRELESS",       "aw"],
             [" PAYLOADS",       "ap_root"],
             [" SYSTEM",         "ag"],
-
+            [" Lock",           OpenLockMenu],
         ),
 
         "auto": (
             [" Run insomniaBox", partial(exec_payload, "insomnia_suite/insomnia_auto")],
-            [" View Auto Logs",  ReadTextFileInsomnia],
+            [" View Auto Logs",  lambda: ReadTextFileInsomnia()],
         ),
 
         "net": (
@@ -3932,16 +3936,6 @@ class DisposableMenu:
         "ap_root": (
             [" Reverse Shell",  "ac"],
             [" All Payloads",   "ap"],
-
-
-
-
-
-
-
-
-
-
         ),
 
         "ab": tuple(
@@ -3989,6 +3983,7 @@ class DisposableMenu:
 
         "ah": (
             [" Nmap",      ReadTextFileNmap],
+            [" insomniaBox",   ReadTextFileInsomnia],
             [" Responder logs", ReadTextFileResponder],
             [" Wardriving", ReadTextFileWardriving],
             [" DNSSpoof",  ReadTextFileDNSSpoof]

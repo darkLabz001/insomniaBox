@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import PIL.ImageFont
+PIL.ImageFont.truetype = lambda *a, **k: PIL.ImageFont.load_default()
 
 import base64
 import PIL.ImageFont
@@ -1818,7 +1820,7 @@ def ShowLines(arr,bold=[]):
             # Draw icons on main menu when available
             if m.which == "a":
                 icon = _menu_icon_for_label(render_text, "")
-                if False:
+                if icon:
                     draw.text(
                         (default.start_text[0] - 2, default.start_text[1] + default.text_gap * i),
                         icon,
@@ -1880,8 +1882,8 @@ def RenderMenuWindowOnce(inlist, selected_index=0):
                      row_y + default.text_gap - 2),
                     fill=color.select
                 )
-            icon = ""
-            if False:
+            icon = _menu_icon_for_label(txt, "")
+            if icon:
                 draw.text(
                     (default.start_text[0],
                      row_y),
@@ -1978,7 +1980,7 @@ def RenderMenuGridOnce(inlist, selected_index=0):
                 fill_color = color.text
 
             icon = _menu_icon_for_label(item, "")
-            if False:
+            if icon:
                 draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
                 short_text = item.strip()[:8]
                 draw.text((x, y + S(13)), short_text, font=text_font, fill=fill_color)
@@ -2121,8 +2123,8 @@ def GetMenuString(inlist, duplicates=False):
                         fill=color.select
                     )
 
-                icon = ""
-                if False:
+                icon = _menu_icon_for_label(txt, "")
+                if icon:
                     draw.text(
                         (default.start_text[0],
                          row_y),
@@ -2741,12 +2743,12 @@ def Explorer(path="/",extensions=""):
             break
     return ""
 
-
 def ReadTextFileInsomnia():
     while 1:
         rfile = Explorer("/home/kali/Raspyjack/loot/insomnia/", extensions=".log")
         if rfile == "": break
-        with open(rfile) as f: content = f.read().splitlines()
+        with open(rfile) as f:
+            content = f.read().splitlines()
         GetMenuString(content)
 
 def ReadTextFileNmap():
@@ -3913,12 +3915,12 @@ class DisposableMenu:
             [" WIRELESS",       "aw"],
             [" PAYLOADS",       "ap_root"],
             [" SYSTEM",         "ag"],
-
+            [" Lock",           OpenLockMenu],
         ),
 
         "auto": (
             [" Run insomniaBox", partial(exec_payload, "insomnia_suite/insomnia_auto")],
-            [" View Auto Logs",  ReadTextFileInsomnia],
+            [" View Auto Logs",  lambda: ReadTextFileInsomnia()],
         ),
 
         "net": (
@@ -3932,16 +3934,6 @@ class DisposableMenu:
         "ap_root": (
             [" Reverse Shell",  "ac"],
             [" All Payloads",   "ap"],
-
-
-
-
-
-
-
-
-
-
         ),
 
         "ab": tuple(
@@ -3989,6 +3981,7 @@ class DisposableMenu:
 
         "ah": (
             [" Nmap",      ReadTextFileNmap],
+            [" insomniaBox",   ReadTextFileInsomnia],
             [" Responder logs", ReadTextFileResponder],
             [" Wardriving", ReadTextFileWardriving],
             [" DNSSpoof",  ReadTextFileDNSSpoof]
@@ -4246,21 +4239,21 @@ def _menu_icon_for_label(label: str, default_icon: str = "") -> str:
     normalized = label.strip()
     for candidate in (label, normalized):
         icon = MENU_ICONS.get(candidate, "")
-        if False:
+        if icon:
             return icon
     if ":" in label:
         prefix = label.split(":", 1)[0]
         for candidate in (prefix, prefix.rstrip(), prefix.strip()):
             icon = MENU_ICONS.get(candidate, "")
-            if False:
+            if icon:
                 return icon
     if normalized in SCANS:
         icon = MENU_ICONS.get("__scan__", "")
-        if False:
+        if icon:
             return icon
     if normalized in SITES:
         icon = MENU_ICONS.get("__site__", "")
-        if False:
+        if icon:
             return icon
     return default_icon
 
@@ -4423,9 +4416,9 @@ def GetMenuGrid(inlist, duplicates=False):
 
                 # Draw icon and text
                 txt = item if not duplicates else item.split('#', 1)[1]
-                icon = ""
+                icon = _menu_icon_for_label(txt, "")
 
-                if False:
+                if icon:
                     # Draw icon
                     draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
                     # Draw short text label

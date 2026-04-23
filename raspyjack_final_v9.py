@@ -11,7 +11,7 @@ import subprocess
 import netifaces
 from scapy.all import ARP, Ether, srp
 from datetime import datetime
-import threading, smbus2 as smbus, time, pyudev, serial, struct, json
+import threading, smbus2 as smbus2 as smbus, time, pyudev, serial, struct, json
 from subprocess import STDOUT, check_output
 from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageSequence, ImageOps
 import LCD_Config
@@ -2741,14 +2741,6 @@ def Explorer(path="/",extensions=""):
             break
     return ""
 
-
-def ReadTextFileInsomnia():
-    while 1:
-        rfile = Explorer("/home/kali/Raspyjack/loot/insomnia/", extensions=".log")
-        if rfile == "": break
-        with open(rfile) as f: content = f.read().splitlines()
-        GetMenuString(content)
-
 def ReadTextFileNmap():
     while 1:
         rfile = Explorer("/root/Raspyjack/loot/Nmap/",extensions=".txt\\|.json\\|.conf\\|.pcap")
@@ -3908,40 +3900,17 @@ class DisposableMenu:
 
     menu = {
         "a": (
-            [" AUTO-PILOT",     "auto"],
-            [" NETWORK",        "net"],
-            [" WIRELESS",       "aw"],
-            [" PAYLOADS",       "ap_root"],
-            [" SYSTEM",         "ag"],
-
-        ),
-
-        "auto": (
-            [" Run insomniaBox", partial(exec_payload, "insomnia_suite/insomnia_auto")],
-            [" View Auto Logs",  ReadTextFileInsomnia],
-        ),
-
-        "net": (
-            [" Scan Nmap",      "ab"],
-            [" Responder",      "ad"],
-            [" MITM & Sniff",   "ai"],
-            [" DNS Spoofing",   "aj"],
-            [" Network info",   ShowInfo],
-        ),
-
-        "ap_root": (
-            [" Reverse Shell",  "ac"],
-            [" All Payloads",   "ap"],
-
-
-
-
-
-
-
-
-
-
+            [" Scan Nmap",      "ab"],     # b
+            [" Reverse Shell",  "ac"],     # c
+            [" Responder",      "ad"],     # d
+            [" MITM & Sniff",   "ai"],     # i
+            [" DNS Spoofing",   "aj"],     # j
+            [" Network info",   ShowInfo], # appel direct
+            [" WiFi Manager",   "aw"],     # w
+            [" Other features", "ag"],     # g
+            [" Read file",      "ah"],     # h
+            [" Payload", "ap"],            # p
+            [" Lock",           OpenLockMenu],
         ),
 
         "ab": tuple(

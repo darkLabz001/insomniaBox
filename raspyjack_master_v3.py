@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import PIL.ImageFont
+PIL.ImageFont.truetype = lambda *a, **k: PIL.ImageFont.load_default()
+
 
 import base64
 import PIL.ImageFont
@@ -2746,7 +2749,8 @@ def ReadTextFileInsomnia():
     while 1:
         rfile = Explorer("/home/kali/Raspyjack/loot/insomnia/", extensions=".log")
         if rfile == "": break
-        with open(rfile) as f: content = f.read().splitlines()
+        with open(rfile) as f:
+            content = f.read().splitlines()
         GetMenuString(content)
 
 def ReadTextFileNmap():
@@ -3906,19 +3910,19 @@ class DisposableMenu:
     max_len = 17     # Max chars per line
     view_mode = "list"  # "list", "grid", or "carousel" - current view mode
 
-    menu = {
+        menu = {
         "a": (
             [" AUTO-PILOT",     "auto"],
             [" NETWORK",        "net"],
             [" WIRELESS",       "aw"],
             [" PAYLOADS",       "ap_root"],
             [" SYSTEM",         "ag"],
-
+            [" Lock",           OpenLockMenu],
         ),
 
         "auto": (
             [" Run insomniaBox", partial(exec_payload, "insomnia_suite/insomnia_auto")],
-            [" View Auto Logs",  ReadTextFileInsomnia],
+            [" View Auto Logs",  lambda: ReadTextFileInsomnia()],
         ),
 
         "net": (
@@ -3932,16 +3936,6 @@ class DisposableMenu:
         "ap_root": (
             [" Reverse Shell",  "ac"],
             [" All Payloads",   "ap"],
-
-
-
-
-
-
-
-
-
-
         ),
 
         "ab": tuple(
@@ -3989,6 +3983,7 @@ class DisposableMenu:
 
         "ah": (
             [" Nmap",      ReadTextFileNmap],
+            [" insomniaBox",   ReadTextFileInsomnia],
             [" Responder logs", ReadTextFileResponder],
             [" Wardriving", ReadTextFileWardriving],
             [" DNSSpoof",  ReadTextFileDNSSpoof]

