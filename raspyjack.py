@@ -3871,6 +3871,25 @@ def exec_payload(filename: str, *args) -> None:
     print("[PAYLOAD] ✔ Menu ready – you can navigate again.")
 
 
+
+def check_for_updates():
+    Dialog_info("Checking for
+updates...", wait=False)
+    try:
+        # Reset local changes to core file to ensure clean pull
+        subprocess.run(['git', 'checkout', 'raspyjack.py'], cwd=default.install_path)
+        result = subprocess.run(['git', 'pull', 'origin', 'main'], cwd=default.install_path, capture_output=True, text=True)
+        if 'Already up to date' in result.stdout:
+            Dialog_info("insomniaBox is
+already up to date", wait=True)
+        else:
+            Dialog_info("Update complete!
+Restarting...", wait=True)
+            Restart()
+    except Exception as e:
+        Dialog_info(f"Update Failed:\n{str(e)[:20]}", wait=True)
+
+
 ### Menu class ###
 class DisposableMenu:
     which  = "a"     # Start menu
