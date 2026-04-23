@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import base64
+import PIL.ImageFont
+PIL.ImageFont.truetype = lambda *a, **k: PIL.ImageFont.load_default()
 import hashlib
 import hmac
 import os
@@ -9,7 +11,7 @@ import subprocess
 import netifaces
 from scapy.all import ARP, Ether, srp
 from datetime import datetime
-import threading, smbus, time, pyudev, serial, struct, json
+import threading, smbus2 as smbus, time, pyudev, serial, struct, json
 from subprocess import STDOUT, check_output
 from PIL import Image, ImageDraw, ImageFont, ImageColor, ImageSequence, ImageOps
 import LCD_Config
@@ -308,7 +310,7 @@ if os.getuid() != 0:
         print("You need a sudo to run this!")
         exit()
 print(" ")
-print(" ------ RaspyJack Started !!! ------ ")
+print(" ------ insomniaBox Started !!! ------ ")
 start_time = time.time()
 
 ####### Classes except menu #######
@@ -332,7 +334,7 @@ class Defaults():
 
     imgstart_path = "/root/"
 
-    install_path = "/root/Raspyjack/"
+    install_path = "/home/kali/Raspyjack/"
     config_file = install_path + "gui_conf.json"
     screensaver_gif = install_path + "img/screensaver/default.gif"
 
@@ -1210,7 +1212,7 @@ def _enter_pin_via_keypad(title: str, prompt: str, allow_cancel: bool = True,
             btn = getButton()
             if btn == "KEY_UP_PIN":
                 row = (row - 1) % len(keypad)
-            elif btn == "KEY_DOWN_PIN":
+            elif btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
                 row = (row + 1) % len(keypad)
             elif btn == "KEY_LEFT_PIN":
                 col = (col - 1) % len(keypad[0])
@@ -2166,11 +2168,11 @@ def GetMenuString(inlist, duplicates=False):
             if _ib and btn in ("KEY_LEFT_PIN","KEY_RIGHT_PIN","KEY_PRESS_PIN","KEY1_PIN","KEY2_PIN"):
                 continue
 
-        if btn == "KEY_DOWN_PIN":
+        if btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
             index = (index + 1) % total      # wrap vers le début
-        elif btn == "KEY_UP_PIN":
+        elif btn == "KEY_UP_PIN" or btn == "KEY1_PIN":
             index = (index - 1) % total      # wrap vers la fin
-        elif btn in ("KEY_PRESS_PIN", "KEY_RIGHT_PIN"):
+        elif btn in ("KEY_PRESS_PIN", "KEY_RIGHT_PIN", "KEY2_PIN"):
             raw = inlist[index]
             if empty:
                 return (-2, "") if duplicates else ""
@@ -2678,9 +2680,9 @@ def DisplayScrollableInfo(info_lines, refresh_fn=None, refresh_interval=2.0):
 
         # Handle button input
         btn = getButton()
-        if btn == "KEY_DOWN_PIN":
+        if btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
             index = (index + 1) % total  # wrap to beginning
-        elif btn == "KEY_UP_PIN":
+        elif btn == "KEY_UP_PIN" or btn == "KEY1_PIN":
             index = (index - 1) % total  # wrap to end
         elif btn in ("KEY_LEFT_PIN", "KEY3_PIN"):
             return  # Exit on back/left button
@@ -3043,7 +3045,7 @@ def send_to_discord(scan_label: str, file_path: str, target_network: str, interf
                 }
             ],
             "footer": {
-                "text": "RaspyJack Nmap Scanner"
+                "text": "insomniaBox Nmap Scanner"
             },
             "timestamp": datetime.now().isoformat()
         }
@@ -3310,7 +3312,7 @@ def Start_MITM():
                 btn = getButton()
                 if btn == "KEY_UP_PIN":
                     idx = max(0, idx - 1)
-                elif btn == "KEY_DOWN_PIN":
+                elif btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
                     idx = min(len(options) - 1, idx + 1)
                 elif btn == "KEY3_PIN" or btn == "KEY_LEFT_PIN":
                     return
@@ -3548,7 +3550,7 @@ def switch_interface_menu():
                     success = set_raspyjack_interface(selected_iface)
 
                     if success:
-                        Dialog_info(f"✓ SUCCESS!\nRaspyJack now using\n{selected_iface}\nAll tools updated", wait=True)
+                        Dialog_info(f"✓ SUCCESS!\ninsomniaBox now using\n{selected_iface}\nAll tools updated", wait=True)
                     else:
                         Dialog_info(f"✗ FAILED!\nCould not switch to\n{selected_iface}\nCheck connection", wait=True)
 
@@ -3572,7 +3574,7 @@ def show_routing_status():
                 "Routing Status:",
                 f"Default: {current_route.get('interface', 'unknown')}",
                 f"Gateway: {current_route.get('gateway', 'unknown')}",
-                f"RaspyJack uses: {current_interface}",
+                f"insomniaBox uses: {current_interface}",
                 "",
                 "Press any key to exit"
             ]
@@ -3580,7 +3582,7 @@ def show_routing_status():
             info_lines = [
                 "Routing Status:",
                 "No default route found",
-                f"RaspyJack uses: {current_interface}",
+                f"insomniaBox uses: {current_interface}",
                 "",
                 "Press any key to exit"
             ]
@@ -3774,12 +3776,12 @@ def _setup_gpio() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 2)  exec_payload – run a script then *immediately* restore RaspyJack UI
+# 2)  exec_payload – run a script then *immediately* restore insomniaBox UI
 # ---------------------------------------------------------------------------
 def exec_payload(filename: str, *args) -> None:
     """
     Execute a Python script located in « payloads/ » and *always*
-    return control – screen **and** buttons – to RaspyJack.
+    return control – screen **and** buttons – to insomniaBox.
 
     Workflow
     --------
@@ -3810,7 +3812,7 @@ def exec_payload(filename: str, *args) -> None:
 
     log = open(default.payload_log, "ab", buffering=0)
     try:
-        # Ensure payloads can import RaspyJack modules reliably
+        # Ensure payloads can import insomniaBox modules reliably
         env = os.environ.copy()
         env["PYTHONPATH"] = default.install_path + os.pathsep + env.get("PYTHONPATH", "")
         cmd = ["python3", full]
@@ -3818,7 +3820,7 @@ def exec_payload(filename: str, *args) -> None:
             cmd.extend(args)
         result = subprocess.run(
             cmd,
-            cwd=default.install_path,  # same PYTHONPATH as RaspyJack
+            cwd=default.install_path,  # same PYTHONPATH as insomniaBox
             env=env,
             stdout=log,
             stderr=subprocess.STDOUT,
@@ -3834,7 +3836,7 @@ def exec_payload(filename: str, *args) -> None:
         print(f"[PAYLOAD]   • ERROR: {exc!r}")
         Dialog_info("Payload error\nCheck payload.log", wait=True)
 
-    # ---- restore RaspyJack ----------------------------------------------
+    # ---- restore insomniaBox ----------------------------------------------
     print("[PAYLOAD] ◄ Restoring LCD & GPIO…")
     _write_payload_state(False, None)
     _setup_gpio()                                  # SPI/DC/RST/CS back
@@ -3873,18 +3875,15 @@ def exec_payload(filename: str, *args) -> None:
 
 
 def check_for_updates():
-    Dialog_info("Checking for
-updates...", wait=False)
+    Dialog_info("Checking for updates...", wait=False)
     try:
         # Reset local changes to core file to ensure clean pull
         subprocess.run(['git', 'checkout', 'raspyjack.py'], cwd=default.install_path)
         result = subprocess.run(['git', 'pull', 'origin', 'main'], cwd=default.install_path, capture_output=True, text=True)
         if 'Already up to date' in result.stdout:
-            Dialog_info("insomniaBox is
-already up to date", wait=True)
+            Dialog_info("insomniaBox is up to date", wait=True)
         else:
-            Dialog_info("Update complete!
-Restarting...", wait=True)
+            Dialog_info("Update complete! Restarting...", wait=True)
             Restart()
     except Exception as e:
         Dialog_info(f"Update Failed:\n{str(e)[:20]}", wait=True)
@@ -4316,10 +4315,10 @@ def GetMenuCarousel(inlist, duplicates=False):
         elif btn == "KEY_RIGHT_PIN":
             # Wraparound navigation - go to first item if at last
             index = (index + 1) % total
-        elif btn == "KEY_UP_PIN":
+        elif btn == "KEY_UP_PIN" or btn == "KEY1_PIN":
             # Fine adjustment - same as left
             index = (index - 1) % total
-        elif btn == "KEY_DOWN_PIN":
+        elif btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
             # Fine adjustment - same as right
             index = (index + 1) % total
         elif btn == "KEY_PRESS_PIN":
@@ -4418,7 +4417,7 @@ def GetMenuGrid(inlist, duplicates=False):
         if btn == "KEY_UP_PIN":
             if index >= GRID_COLS:
                 index -= GRID_COLS
-        elif btn == "KEY_DOWN_PIN":
+        elif btn == "KEY_DOWN_PIN" or btn == "KEY3_PIN":
             if index + GRID_COLS < total:
                 index += GRID_COLS
         elif btn == "KEY_LEFT_PIN":
